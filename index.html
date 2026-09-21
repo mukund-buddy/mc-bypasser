@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2024-2026 Mukund (The Antigle). All rights reserved. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MC Bypasser - Skip ad walls and get direct download links instantly. Supports Linkvertise, LootLink, Work.ink and 10+ services.">
+  <meta name="keywords" content="linkvertise bypass, lootlink bypass, minecraft mod download, ad bypass, link bypasser">
+  <meta name="author" content="Mukund (The Antigle)">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mc-bypasser.pages.dev/">
+  <meta property="og:title" content="MC Bypasser - Skip Ad Walls Instantly">
+  <meta property="og:description" content="Free tool to bypass Linkvertise, LootLink, Work.ink and 10+ ad-wall services. Get direct links in seconds.">
+  <meta property="og:image" content="https://mc-bypasser.pages.dev/assets/images/og-image.png">
+
+  <title>MC Bypasser — Skip Ad Walls Instantly</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">MC Bypasser</span>
+      </a>
+      <nav class="nav">
+        <a href="https://not-gaming-playz.pages.dev" target="_blank" rel="noopener" class="nav-link">The Antigle</a>
+        <a href="https://github.com/mukund-buddy/mc-bypasser" target="_blank" rel="noopener" class="nav-link">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container hero-content">
+      <p class="hero-badge">FREE & OPEN SOURCE</p>
+      <h1 class="hero-title">Skip Ad Walls<br><span class="gradient-text">Instantly</span></h1>
+      <p class="hero-desc">Paste any Linkvertise, LootLink, or Work.ink link. Get the direct download URL in seconds. No ads. No waiting. No BS.</p>
+    </div>
+  </section>
+
+  <!-- Bypass Tool -->
+  <section class="tool-section">
+    <div class="container">
+      <div class="bypass-card">
+        <div class="input-group">
+          <input
+            type="url"
+            id="linkInput"
+            class="link-input"
+            placeholder="Paste your link here... (Linkvertise, LootLink, Work.ink, etc.)"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button id="bypassBtn" class="bypass-btn" onclick="startBypass()">
+            <span class="btn-text">Bypass</span>
+            <span class="btn-loader hidden">
+              <span class="spinner-sm"></span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Supported Services -->
+        <div class="services-tags" id="servicesTags">
+          <span class="tag" data-service="linkvertise">Linkvertise</span>
+          <span class="tag" data-service="lootlink">LootLink</span>
+          <span class="tag" data-service="workink">Work.ink</span>
+          <span class="tag" data-service="boost">Boost.ink</span>
+          <span class="tag" data-service="adfoc">Adfoc.us</span>
+          <span class="tag" data-service="rekonise">Rekonise</span>
+          <span class="tag" data-service="sub2unlock">Sub2Unlock</span>
+          <span class="tag" data-service="shortest">Shorte.st</span>
+          <span class="tag" data-service="cuttly">Cutt.ly</span>
+          <span class="tag" data-service="ouo">Ouo.io</span>
+          <span class="tag" data-service="more">+ More</span>
+        </div>
+
+        <!-- Result -->
+        <div id="result" class="result hidden">
+          <div class="result-header">
+            <span class="result-icon">✅</span>
+            <span class="result-title">Direct Link Ready</span>
+          </div>
+          <div class="result-body">
+            <a id="resultLink" href="#" target="_blank" rel="noopener" class="result-url"></a>
+            <button class="copy-btn" onclick="copyLink()">
+              <span id="copyText">Copy</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="error hidden">
+          <span class="error-icon">❌</span>
+          <span id="errorMsg" class="error-text"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Why MC Bypasser?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Lightning Fast</h3>
+          <p>Get direct links in under 3 seconds. No countdowns, no waiting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>100% Free</h3>
+          <p>No premium tiers, no sign-ups, no hidden fees. Completely free.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Works Everywhere</h3>
+          <p>Desktop, mobile, tablet — any browser, any device.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Safe & Private</h3>
+          <p>No data collection, no tracking. Runs entirely in your browser.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>10+ Services</h3>
+          <p>Linkvertise, LootLink, Work.ink, Boost.ink, and many more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>History</h3>
+          <p>All your bypassed links saved locally. Access them anytime.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- History -->
+  <section class="history-section" id="historySection">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Recent Bypasses</h2>
+        <button class="clear-btn" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">⚡</span>
+        <span>MC Bypasser</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.instagram.com/antigle_official" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="https://youtube.com/@notgamingplayz" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.872.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136c.502-1.884.502-5.814.502-5.814s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="https://github.com/mukund-buddy/mc-bypasser" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+      </div>
+      <div class="footer-copy">
+        &copy; 2024-2026 <a href="https://not-gaming-playz.pages.dev" target="_blank" rel="noopener">Mukund (The Antigle)</a>. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
