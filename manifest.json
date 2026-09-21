@@ -4,8 +4,8 @@
   "description": "Free tool to bypass Linkvertise, LootLink, Work.ink and 10+ ad-wall services. Get direct links in seconds.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#050816",
+  "theme_color": "#050816",
   "orientation": "any",
   "icons": [
     {
