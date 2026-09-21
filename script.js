@@ -1,18 +1,14 @@
 /* Copyright (c) 2024-2026 Mukund (The Antigle). All rights reserved. */
-/* MC Bypasser - Link Bypass Engine */
+/* MC Bypasser - Link Bypass Engine v2 */
 
-(function() {
+(function () {
   'use strict';
-
-  // ==================== CONFIG ====================
-  const BYPASS_APIS = [
-    'https://bypass.vip/api/bypass?link=',
-    'https://bypass.city/api/bypass?link=',
-    'https://api.bypass.tools/bypass?link='
-  ];
 
   const STORAGE_KEY = 'mc_bypasser_history';
   const MAX_HISTORY = 20;
+
+  // CORS proxy (allorigins) — wraps any URL so fetch works from browser
+  const PROXY = 'https://api.allorigins.win/raw?url=';
 
   // ==================== SERVICE DETECTION ====================
   const SERVICES = {
@@ -41,7 +37,7 @@
       name: 'Rekonise'
     },
     sub2unlock: {
-      patterns: [/sub2unlock\.(com|net)/i, /sub2get\.com/i, /sub4unlock\.io/i],
+      patterns: [/sub2unlock\.(com|net)/i, /sub2get\.com/i, /sub4unlock\.io/i, /subfinal\.com/i],
       name: 'Sub2Unlock'
     },
     shortest: {
@@ -67,6 +63,34 @@
     try2link: {
       patterns: [/try2link\.com/i],
       name: 'Try2Link'
+    },
+    paster: {
+      patterns: [/paster\.so/i, /paster\.gg/i],
+      name: 'Paster.so'
+    },
+    cuty: {
+      patterns: [/cuty\.io/i, /cety\.io/i],
+      name: 'Cuty.io'
+    },
+    socialunlock: {
+      patterns: [/social-unlock\.com/i, /socialwolvez\.com/i],
+      name: 'Social Unlock'
+    },
+    sub2get: {
+      patterns: [/sub2get\.com/i],
+      name: 'Sub2Get'
+    },
+    ytsubme: {
+      patterns: [/ytsubme\.com/i],
+      name: 'YtSubMe'
+    },
+    mendation: {
+      patterns: [/mendationforc\.info/i],
+      name: 'Mendation'
+    },
+    unlocknow: {
+      patterns: [/unlocknow\.net/i],
+      name: 'UnlockNow'
     }
   };
 
@@ -79,292 +103,218 @@
         }
       }
     }
-    return { id: 'unknown', name: 'Unknown' };
+    return { id: 'unknown', name: 'Direct Link' };
   }
 
-  // ==================== LINKVERTISE BYPASS ====================
-  async function bypassLinkvertise(url) {
+  // ==================== FETCH VIA PROXY ====================
+  async function proxyFetch(url, options = {}) {
+    const proxied = PROXY + encodeURIComponent(url);
+    const res = await fetch(proxied, {
+      ...options,
+      headers: {
+        'Accept': 'application/json',
+        ...options.headers
+      }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res;
+  }
+
+  // ==================== BYPASS.VIP API ====================
+  async function bypassViaVip(url) {
+    const api = `https://api.bypass.vip/bypass?url=${encodeURIComponent(url)}`;
+    const res = await proxyFetch(api);
+    const data = await res.json();
+    if (data.status === 'success' && data.result) return data.result;
+    throw new Error(data.message || 'bypass.vip failed');
+  }
+
+  // ==================== BYPASS.CITY API ====================
+  async function bypassViaCity(url) {
+    const api = `https://api.bypass.city/bypass?link=${encodeURIComponent(url)}`;
+    const res = await proxyFetch(api);
+    const data = await res.json();
+    if (data.status === 'success' && data.destination) return data.destination;
+    if (data.destination) return data.destination;
+    throw new Error('bypass.city failed');
+  }
+
+  // ==================== BYPASS.TOOLS API ====================
+  async function bypassViaTools(url) {
+    const api = `https://api.bypass.tools/bypass?url=${encodeURIComponent(url)}`;
+    const res = await proxyFetch(api);
+    const data = await res.json();
+    if (data.status === 'success' && data.result) return data.result;
+    if (data.destination) return data.destination;
+    throw new Error('bypass.tools failed');
+  }
+
+  // ==================== LINKVERTISE DIRECT BYPASS ====================
+  async function bypassLinkvertiseDirect(url) {
     try {
-      // Clean URL
       let cleanUrl = url
         .replace(/%3D/g, ' ')
         .replace(/&o=sharing/g, '')
         .replace(/\?o=sharing/g, '')
         .replace(/dynamic\?r=/g, 'dynamic/?r=');
 
-      // Extract path
-      const pathMatch = cleanUrl.match(/\/\d+\/[^\/]+/);
-      if (!pathMatch) throw new Error('Invalid Linkvertise URL format');
+      const pathMatch = cleanUrl.match(/\/\d+\/[^\/?]+/);
+      if (!pathMatch) throw new Error('Invalid format');
 
       const path = pathMatch[0];
 
-      // Step 1: Trigger impression endpoints
-      const impressionPaths = [
-        '/captcha',
-        '/countdown_impression?trafficOrigin=network',
-        '/todo_impression?mobile=true&trafficOrigin=network'
-      ];
+      // Step 1: Get link info via proxy
+      const staticUrl = `https://publisher.linkvertise.com/api/v1/redirect/link/static${path}`;
+      const staticRes = await proxyFetch(staticUrl);
+      const staticData = await staticRes.json();
 
-      for (const impPath of impressionPaths) {
-        try {
-          await fetch(`https://publisher.linkvertise.com/api/v1/redirect/link${path}${impPath}`, {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-              'Accept': 'application/json'
-            }
-          });
-        } catch (e) { /* ignore */ }
-      }
-
-      // Step 2: Get link ID
-      const staticResponse = await fetch(`https://publisher.linkvertise.com/api/v1/redirect/link/static${path}`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-          'Accept': 'application/json'
-        }
-      });
-
-      const staticData = await staticResponse.json();
-      if (!staticData?.data?.link?.id) throw new Error('Could not get link ID');
-
+      if (!staticData?.data?.link?.id) throw new Error('No link ID');
       const linkId = staticData.data.link.id;
 
-      // Step 3: Create serial
+      // Step 2: Create serial
       const serial = btoa(JSON.stringify({
         timestamp: Date.now(),
         random: '6548307',
         link_id: linkId
       }));
 
-      // Step 4: Get target
-      const targetResponse = await fetch(`https://publisher.linkvertise.com/api/v1/redirect/link${path}/target`, {
+      // Step 3: Get target via proxy
+      const targetUrl = `https://publisher.linkvertise.com/api/v1/redirect/link${path}/target`;
+      const targetRes = await fetch(targetUrl, {
         method: 'POST',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)'
         },
         body: JSON.stringify({ serial })
       });
 
-      const targetData = await targetResponse.json();
-      if (targetData?.data?.target) {
-        return targetData.data.target;
-      }
-
-      throw new Error('No target URL in response');
+      const targetData = await targetRes.json();
+      if (targetData?.data?.target) return targetData.data.target;
+      throw new Error('No target');
     } catch (e) {
-      throw new Error(`Linkvertise bypass failed: ${e.message}`);
+      throw new Error('Linkvertise direct failed');
     }
   }
 
-  // ==================== GENERIC API BYPASS ====================
-  async function bypassViaAPI(url) {
-    const encodedUrl = encodeURIComponent(url);
+  // ==================== MAIN BYPASS ====================
+  async function bypass(url) {
+    try { new URL(url); } catch { throw new Error('Invalid URL. Please paste a valid link.'); }
 
-    for (const api of BYPASS_APIS) {
+    const service = detectService(url);
+
+    // Try Linkvertise direct first
+    if (service.id === 'linkvertise') {
+      try { return await bypassLinkvertiseDirect(url); } catch (e) { /* fall through */ }
+    }
+
+    // Try APIs in order
+    const apis = [bypassViaVip, bypassViaCity, bypassViaTools];
+    let lastError;
+
+    for (const apiFn of apis) {
       try {
-        const response = await fetch(api + encodedUrl, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'MCBypasser/1.0'
-          }
-        });
-
-        if (!response.ok) continue;
-
-        const data = await response.json();
-
-        // Try different response formats
-        if (data.destination) return data.destination;
-        if (data.url) return data.url;
-        if (data.target) return data.target;
-        if (data.data?.destination) return data.data.destination;
-        if (data.data?.url) return data.data.url;
-        if (data.data?.target) return data.data.target;
-        if (data.status === 'success' && data.link) return data.link;
+        const result = await apiFn(url);
+        if (result && result.startsWith('http')) return result;
       } catch (e) {
+        lastError = e;
         continue;
       }
     }
 
-    throw new Error('All bypass APIs failed');
-  }
-
-  // ==================== MAIN BYPASS FUNCTION ====================
-  async function bypass(url) {
-    // Validate URL
-    try {
-      new URL(url);
-    } catch {
-      throw new Error('Invalid URL. Please paste a valid link.');
-    }
-
-    const service = detectService(url);
-
-    // Try service-specific bypass first
-    if (service.id === 'linkvertise') {
-      try {
-        return await bypassLinkvertise(url);
-      } catch (e) {
-        // Fall through to generic API
-      }
-    }
-
-    // Try generic APIs
-    try {
-      return await bypassViaAPI(url);
-    } catch (e) {
-      throw new Error(`Could not bypass this link. The service may be unsupported or the link may be expired.`);
-    }
+    throw new Error(lastError?.message || 'Could not bypass this link. It may be expired or unsupported.');
   }
 
   // ==================== HISTORY ====================
   function getHistory() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch {
-      return [];
-    }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
   }
 
-  function saveToHistory(originalUrl, bypassedUrl, service) {
+  function saveToHistory(original, bypassed, service) {
     const history = getHistory();
-    const entry = {
-      id: Date.now(),
-      original: originalUrl,
-      bypassed: bypassedUrl,
-      service: service.name,
-      timestamp: new Date().toISOString()
-    };
-
-    // Remove duplicate
-    const filtered = history.filter(h => h.original !== originalUrl);
+    const entry = { id: Date.now(), original, bypassed, service: service.name, timestamp: new Date().toISOString() };
+    const filtered = history.filter(h => h.original !== original);
     filtered.unshift(entry);
-
-    // Limit
     if (filtered.length > MAX_HISTORY) filtered.pop();
-
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     renderHistory();
   }
 
-  function clearHistory() {
+  window.clearHistory = function () {
     localStorage.removeItem(STORAGE_KEY);
     renderHistory();
-  }
-  window.clearHistory = clearHistory;
+  };
 
   function renderHistory() {
     const container = document.getElementById('historyList');
     const section = document.getElementById('historySection');
     const history = getHistory();
 
-    if (history.length === 0) {
-      section.classList.add('hidden');
-      return;
-    }
-
+    if (history.length === 0) { section.classList.add('hidden'); return; }
     section.classList.remove('hidden');
+
     container.innerHTML = history.map(item => `
       <div class="history-item">
-        <span class="history-service">${escapeHtml(item.service)}</span>
-        <a href="${escapeHtml(item.bypassed)}" target="_blank" rel="noopener" class="history-link">${escapeHtml(item.original)}</a>
-        <button class="history-copy" onclick="copyToClipboard('${escapeJs(item.bypassed)}', this)">Copy</button>
-      </div>
-    `).join('');
+        <span class="history-service">${esc(item.service)}</span>
+        <a href="${esc(item.bypassed)}" target="_blank" rel="noopener" class="history-link">${esc(item.original)}</a>
+        <button class="history-copy" onclick="copyText('${escJs(item.bypassed)}', this)">Copy</button>
+      </div>`).join('');
   }
 
-  // ==================== UI HELPERS ====================
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function escapeJs(str) {
-    return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
-  }
+  // ==================== UI ====================
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function escJs(s) { return s.replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
   function showResult(url) {
-    const resultEl = document.getElementById('result');
-    const linkEl = document.getElementById('resultLink');
-    const errorEl = document.getElementById('error');
-
-    errorEl.classList.add('hidden');
-    linkEl.href = url;
-    linkEl.textContent = url;
-    resultEl.classList.remove('hidden');
+    document.getElementById('error').classList.add('hidden');
+    const link = document.getElementById('resultLink');
+    link.href = url;
+    link.textContent = url;
+    document.getElementById('result').classList.remove('hidden');
   }
 
   function showError(msg) {
-    const errorEl = document.getElementById('error');
-    const resultEl = document.getElementById('result');
-    const errorMsg = document.getElementById('errorMsg');
-
-    resultEl.classList.add('hidden');
-    errorMsg.textContent = msg;
-    errorEl.classList.remove('hidden');
+    document.getElementById('result').classList.add('hidden');
+    document.getElementById('errorMsg').textContent = msg;
+    document.getElementById('error').classList.remove('hidden');
   }
 
-  function setLoading(loading) {
+  function setLoading(on) {
     const btn = document.getElementById('bypassBtn');
-    const text = btn.querySelector('.btn-text');
-    const loader = btn.querySelector('.btn-loader');
-
-    if (loading) {
-      text.classList.add('hidden');
-      loader.classList.remove('hidden');
-      btn.disabled = true;
-    } else {
-      text.classList.remove('hidden');
-      loader.classList.add('hidden');
-      btn.disabled = false;
-    }
+    btn.querySelector('.btn-text').classList.toggle('hidden', on);
+    btn.querySelector('.btn-loader').classList.toggle('hidden', !on);
+    btn.disabled = on;
   }
 
   // ==================== COPY ====================
-  function copyLink() {
-    const url = document.getElementById('resultLink').href;
-    copyToClipboard(url, document.querySelector('.copy-btn'), 'Copied!');
-  }
+  window.copyLink = function () {
+    copyText(document.getElementById('resultLink').href, document.querySelector('.copy-btn'), 'Copied!');
+  };
 
-  function copyToClipboard(text, btn, successText = 'Copied!') {
+  window.copyText = function (text, btn, ok = 'Copied!') {
     navigator.clipboard.writeText(text).then(() => {
-      const original = btn.textContent;
-      btn.textContent = successText;
-      btn.style.borderColor = 'var(--accent)';
-      btn.style.color = 'var(--accent)';
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      }, 1500);
+      if (!btn) return;
+      const orig = btn.textContent;
+      btn.textContent = ok;
+      setTimeout(() => btn.textContent = orig, 1500);
     }).catch(() => {
-      // Fallback
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
       document.execCommand('copy');
-      document.body.removeChild(textarea);
-      btn.textContent = successText;
-      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      document.body.removeChild(ta);
+      if (btn) { btn.textContent = ok; setTimeout(() => btn.textContent = 'Copy', 1500); }
     });
-  }
-  window.copyLink = copyLink;
-  window.copyToClipboard = copyToClipboard;
+  };
 
   // ==================== MAIN HANDLER ====================
-  async function startBypass() {
+  window.startBypass = async function () {
     const input = document.getElementById('linkInput');
     const url = input.value.trim();
-
-    if (!url) {
-      showError('Please paste a link first.');
-      return;
-    }
+    if (!url) { showError('Please paste a link first.'); return; }
 
     setLoading(true);
     document.getElementById('result').classList.add('hidden');
@@ -373,7 +323,6 @@
     try {
       const result = await bypass(url);
       const service = detectService(url);
-
       showResult(result);
       saveToHistory(url, result, service);
     } catch (e) {
@@ -381,19 +330,16 @@
     } finally {
       setLoading(false);
     }
-  }
-  window.startBypass = startBypass;
+  };
 
-  // Enter key support
-  document.getElementById('linkInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') startBypass();
+  // Enter key
+  document.getElementById('linkInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.startBypass();
   });
 
   // ==================== PWA ====================
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   }
 
   // ==================== INIT ====================
